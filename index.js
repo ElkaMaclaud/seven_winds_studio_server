@@ -1,11 +1,16 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-
+import router from "./router"
 dotenv.config()
+const PORT = process.env.PORT || 5000
 
 const app = express()
-const PORT = process.env.PORT || 5000
+
+app.use(express.json())
+app.use("v1/outlay-rows/entity", router)
+
+
 
 const start = async() => {
     try {
