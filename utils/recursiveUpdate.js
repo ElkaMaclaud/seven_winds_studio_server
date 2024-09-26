@@ -1,40 +1,76 @@
-export function updateSalary(objects, idToUpdate, newSalary) {
-    function recursiveUpdate(node) {
-        if (node.id === idToUpdate) {
-            const oldSalary = node.salary;
-            node.salary = newSalary; 
-            
-            return oldSalary !== newSalary; 
+export function updateValue(objects, id, action = "update", newOblect = {}) {
+  let updatedObject = {};
+  let firstAction = false;
+  function recursiveUpdate(node) {
+    if (node.id === id) {
+      if (action === "create") {
+        if (!child in node) {
+          //!node.hasOwnProperty(child)
+          node.child = [];
         }
-
-        let salaryUpdated = false; 
-
-        if (node.child && node.child.length > 0) {
-            for (let child of node.child) {
-                if (recursiveUpdate(child)) {
-                    salaryUpdated = true; 
-                }
-            }
-        }
-        if (salaryUpdated) {
-            node.salary = newSalary; 
-        }
-
-        return salaryUpdated;
+        node.child.push(newOblect);
+        updatedObject = diffObj({}, newOblect);
+        node = diffObj(node, newOblect, parent);
+        return true;
+      } else if (action === "update") {
+        updatedObject = diffObj(node, newOblect);
+        node = newOblect;
+        return true;
+      } else {
+        updatedObject = diffObj(node, {});
+        firstAction = true;
+        return true;
+      }
     }
 
-    for (let object of objects) {
-        recursiveUpdate(object); 
+    let valueUpdated = false;
+
+    if (node.child && node.child.length > 0) {
+      for (let child of node.child) {
+        if (recursiveUpdate(child)) {
+          valueUpdated = true;
+        }
+      }
     }
+    if (valueUpdated) {
+      if (firstAction && action === "delete") {
+        const index = node.child.findIndex((item) => (newOblect.id = item.id));
+        node.splice(index, 1);
+        firstAction = false;
+      }
+      node = diffObj(node, updatedObject);
+      return valueUpdated;
+    }
+    return valueUpdated;
+  }
+
+  for (let object of objects) {
+    recursiveUpdate(object);
+  }
 }
+function diffObj(oldObj, newObj, parent = false) {
+  let diff = {};
 
-
-
+  if (!oldObj) {
+    return newObj;
+  }
+  for (let key in oldObj) {
+    if (newObj.hasOwnProperty(key)) {
+      if (parent) {
+        diff[key] = newObj[key] + oldObj[key];
+      }
+      diff[key] = newObj[key] - oldObj[key];
+    } else {
+      diff[key] = -newObj[key];
+    }
+  }
+  return diff;
+}
 
 // class Node {
 //     constructor(name, parent = null) {
-//         this.name = name; 
-//         this.parent = parent; 
+//         this.name = name;
+//         this.parent = parent;
 //         this.children = [];
 //     }
 
@@ -54,11 +90,11 @@ export function updateSalary(objects, idToUpdate, newSalary) {
 // }
 
 // function updateParents(node) {
-  
+
 //     let current = node.getParent();
 //     while (current !== null) {
-//         current.update(); 
-//         current = current.getParent(); 
+//         current.update();
+//         current = current.getParent();
 //     }
 // }
 
@@ -71,10 +107,8 @@ export function updateSalary(objects, idToUpdate, newSalary) {
 // root.addChild(child2);
 // child1.addChild(child3);
 
-
 // console.log("Обновляем Child1 и его родителей:");
-// child1.update();  
-// updateParents(child1);  
-
+// child1.update();
+// updateParents(child1);
 
 // console.log(`Дети ${child1.name}: ${child1.children.map(child => child.name).join(', ')}`);

@@ -8,7 +8,7 @@ const ProjectModel = new Schema({
   materials: { type: Number },
   mimExploitation: { type: Number },
   overheads: { type: Number },
-  parentId: { type: Number | null },
+  parentId: { type: Number },
   rowName: { type: String },
   salary: { type: Number },
   supportCosts: { type: Number },
