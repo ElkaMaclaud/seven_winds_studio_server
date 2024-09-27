@@ -1,19 +1,19 @@
 import { Schema, model } from "mongoose";
 
 const ProjectModel = new Schema({
-  equipmentCosts: { type: Number },
-  estimatedProfit: { type: Number },
-  machineOperatorSalary: { type: Number },
-  mainCosts: { type: Number },
-  materials: { type: Number },
-  mimExploitation: { type: Number },
-  overheads: { type: Number },
-  parentId: { type: Number },
-  rowName: { type: String },
-  salary: { type: Number },
-  supportCosts: { type: Number },
   id: { type: Number },
+  rowName: { type: String },
+  total: { type: Number },
+  salary: { type: Number },
+  mimExploitation: { type: Number },
+  machineOperatorSalary: { type: Number },
+  materials: { type: Number },
+  mainCosts: { type: Number },
+  supportCosts: { type: Number },
+  equipmentCosts: { type: Number },
+  overheads: { type: Number },
+  estimatedProfit: { type: Number },
   child: [{type: Schema.Types.ObjectId, ref: "Project"}]
 });
 
-export default model("Project", ProjectModel)
+export default model("Project", ProjectModel);
