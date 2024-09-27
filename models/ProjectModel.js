@@ -13,7 +13,7 @@ const ProjectModel = new Schema({
   equipmentCosts: { type: Number },
   overheads: { type: Number },
   estimatedProfit: { type: Number },
-  child: [{type: Schema.Types.ObjectId, ref: "Project"}]
+  child: [{type: Object, ref: "Project"}]
 });
 
 export default model("Project", ProjectModel);

@@ -9,7 +9,7 @@ export class Controller {
       const data = await GeneralEssence.findOne({ id: req.params.eID })
         .select("child")
         .exec();
-      return res.json(data.child ? [data.child] : []);
+      return res.json(data.child ? data.child : []);
     } catch (error) {
       res.status(400).json({ message: "Ошибка получения данных", error });
     }
@@ -34,12 +34,11 @@ export class Controller {
         .select("child")
         .exec();
       const newData = updateValue(data.child, req.body, "create", req.body.parentId);
-      // await GeneralEssence.updateOne(
-      //   { id: req.params.eID },
-      //   { $set: { child: newData.changedObj } }
-      // );
-
-      res.status(200).json(newData.response);
+      await GeneralEssence.updateOne(
+        { id: req.params.eID },
+        { $set: { child: newData.changedObj } }
+      );
+    return res.status(200).json(newData.response);
     } catch (error) {
       res.status(500).json({ success: false, message: `Ошибка: ${error}` });
     }
