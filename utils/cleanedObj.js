@@ -11,11 +11,12 @@ const obj = {
     equipmentCosts: 0,
     overheads: 0,
     estimatedProfit: 0,
+    child: []
   };
 
 export function cleanedobj(object) {
     return Object.keys(obj).reduce((acc, key) => {
-        acc[key] = object[key] || obj[key]
+        acc[key] = (!["rowName"].includes(key) ? parseInt(object[key]) : (object[key]).toString()) || obj[key]
         return acc
     }, {}) 
 

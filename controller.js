@@ -7,9 +7,8 @@ export class Controller {
   async getData(req, res) {
     try {
       const data = await GeneralEssence.findOne({ id: req.params.eID })
-        .select("child")
-        .exec();
-      return res.json(data.child ? data.child : []);
+        .select("projectName")
+      return res.json(data.projectName ? [data.projectName] : []);
     } catch (error) {
       res.status(400).json({ message: "Ошибка получения данных", error });
     }
@@ -22,7 +21,7 @@ export class Controller {
           5
         )}-${generateRandomString(18)}`,
       };
-      await GeneralEssence.create({ ...data, child: [] });
+      await GeneralEssence.create({ ...data, projectName: {} });
       res.status(200).json(data);
     } catch (error) {
       res.status(500).json({ success: false, message: `Ошибка: ${error}` });
@@ -31,12 +30,12 @@ export class Controller {
   async createRow(req, res) {
     try {
       const data = await GeneralEssence.findOne({ id: req.params.eID })
-        .select("child")
+        .select("projectName")
         .exec();
-      const newData = updateValue(data.child, req.body, "create", req.body.parentId);
+      const newData = updateValue(data.projectName, req.body, "create", req.body.parentId);
       await GeneralEssence.updateOne(
         { id: req.params.eID },
-        { $set: { child: newData.changedObj } }
+        { $set: { projectName: newData.changedObj } }
       );
     return res.status(200).json(newData.response);
     } catch (error) {
@@ -46,12 +45,12 @@ export class Controller {
   async updateRow(req, res) {
     try {
       const data = await GeneralEssence.findOne({ id: req.params.eID })
-        .select("child")
+        .select("projectName")
         .exec();
-      const newData = updateValue(data.child, req.body);
+      const newData = updateValue(data.projectName, req.body);
       await GeneralEssence.updateOne(
         { id: req.params.eID },
-        { $set: { child: newData.changedObj } }
+        { $set: { projectName: newData.changedObj} }
       );
 
       res.status(200).json(newData.response);
@@ -62,12 +61,12 @@ export class Controller {
   async deleteRow(req, res) {
     try {
       const data = await GeneralEssence.findOne({ id: req.params.eID })
-        .select("child")
+        .select("projectName")
         .exec();
-      const newData = updateValue(data.child, req.body, "delete");
+      const newData = updateValue(data.projectName, req.params.eID, "delete");
       await GeneralEssence.updateOne(
         { id: req.params.eID },
-        { $set: { child: newData.changedObj } }
+        { $set: { projectName: newData.changedObj } }
       );
 
       res.status(200).json(newData.response);
