@@ -63,7 +63,7 @@ export class Controller {
       const data = await GeneralEssence.findOne({ id: req.params.eID })
         .select("projectName")
         .exec();
-      const newData = updateValue(data.projectName, req.params.eID, "delete");
+      const newData = updateValue(data.projectName, parseInt(req.params.id), "delete");
       await GeneralEssence.updateOne(
         { id: req.params.eID },
         { $set: { projectName: newData.changedObj } }

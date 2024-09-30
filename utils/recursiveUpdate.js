@@ -1,16 +1,12 @@
 import { cleanedobj } from "./cleanedObj.js";
 
-export function updateValue(
-  rootObject,
-  newObj,
-  action = "update",
-  parentId
-) {
+export function updateValue(rootObject, newObj, action = "update", parentId) {
   const output = { current: {}, changed: [] };
   const newObject = action !== "delete" ? cleanedobj(newObj) : null;
   let updatedObject = {};
   let firstAction = false;
-  const id = action === "create" ? parentId : action === "delete" ? newObj : newObj.id;
+  const id =
+    action === "create" ? parentId : action === "delete" ? newObj : newObj.id;
   function recursiveUpdate(node) {
     if (node.id === id) {
       if (action === "create") {
@@ -20,10 +16,11 @@ export function updateValue(
         }
         newObject.id = parseInt(Math.random() * 10000 + 10000);
         node.child.push(newObject);
-        updatedObject = diffObj({}, newObject);
-        const newOb = diffObj(node, newObject, true);
+        updatedObject = diffObj({}, newObject, true);
+        const newOb = diffObj(node, updatedObject);
         Object.assign(node, newOb);
-        output.current = (({ child, ...rest }) => rest)(node);
+        output.current = (({ child, ...rest }) => rest)(newObject);
+        output.changed.push((({ child, ...rest }) => rest)(node));
         return true;
       } else if (action === "update") {
         updatedObject = diffObj(node, newObject);
@@ -31,11 +28,15 @@ export function updateValue(
         output.current = (({ child, ...rest }) => rest)(node);
         return true;
       } else {
-        updatedObject = diffObj(node, {});
-        firstAction = true;
-        node = null;
-        output.current = null;
-        return true;
+        if (rootObject.id === id) {
+          rootObject = null;
+        } else {
+          updatedObject = diffObj({}, node);
+          firstAction = true;
+          node = null;
+          output.current = null;
+          return true;
+        }
       }
     }
 
@@ -46,26 +47,27 @@ export function updateValue(
         if (recursiveUpdate(child)) {
           valueUpdated = true;
         }
-      }
-    }
-    if (valueUpdated) {
-      if (firstAction && action === "delete") {
-        const index = node.child.findIndex((item) => item === null);
-        node.child.splice(index, 1);
-        firstAction = false;
-      }
-      const newOb = diffObj(node, updatedObject);
-      const rest = (({ child, rowName, id, ...rest }) => rest)(node);
-      const result = Object.entries(rest).every(
-        ([key, val]) => newOb[key] === val
-      );
+        if (valueUpdated) {
+          if (firstAction && action === "delete") {
+            const index = node.child.findIndex((item) => item === null);
+            node.child.splice(index, 1);
+            firstAction = false;
+          }
+          const newOb = diffObj(node, updatedObject);
+          const rest = (({ child, rowName, id, ...rest }) => rest)(node);
+          const result = Object.entries(rest).every(
+            ([key, val]) => newOb[key] === val
+          );
 
-      if (!result) {
-        Object.assign(node, newOb);
-        output.changed.push((({ child, ...rest }) => rest)(node));
+          if (!result) {
+            Object.assign(node, newOb);
+            output.changed.push((({ child, ...rest }) => rest)(node));
+          }
+          return valueUpdated;
+        }
       }
-      return valueUpdated;
     }
+
     return valueUpdated;
   }
 
@@ -73,27 +75,34 @@ export function updateValue(
     newObject.id = parseInt(Math.random() * 10000 + 10000);
     output.current = newObject;
     rootObject = newObject;
-  } else if (action !== "delete") {
+  } else {
     recursiveUpdate(rootObject);
   }
 
-  recursivesorting(rootObject);
   return { response: output, changedObj: rootObject };
 }
 
 function diffObj(oldObj, newObj, parent = false) {
   let diff = {};
+  let increment = false;
 
   if (Object.keys(oldObj).length === 0) {
+    if (parent) {
+      return { ...newObj, increment: true };
+    }
     return newObj;
+  }
+  if (newObj.hasOwnProperty("increment")) {
+    increment = true;
   }
   for (let key in oldObj) {
     if (!["rowName", "id", "child"].includes(key)) {
       if (newObj.hasOwnProperty(key)) {
-        if (parent) {
+        if (increment) {
           diff[key] = newObj[key] + oldObj[key];
+        } else {
+          diff[key] = oldObj[key] - newObj[key];
         }
-        diff[key] = Math.abs(newObj[key] - oldObj[key]);
       }
     }
   }
