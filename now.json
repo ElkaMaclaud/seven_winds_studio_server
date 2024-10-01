@@ -1,7 +1,7 @@
 {
     "version": 2,
     "builds": [{ "src": "index.js", "use": "@vercel/node" }],
-    "routes": [{ "src": "//v1/outlay-rows/entity/(.*)", "dest": "index.js" }],
+    "routes": [{ "src": "/v1/outlay-rows/entity/(.*)", "dest": "index.js" }],
     "env": {
       "PORT": "5000"
     }
