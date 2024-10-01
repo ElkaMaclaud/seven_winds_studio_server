@@ -15,7 +15,7 @@ export function updateValue(rootObject, newObj, action = "update") {
           node.child = [];
         }
         newObject.id = parseInt(Math.random() * 10000 + 10000);
-        node.child.push(newObject);
+        node.child.push({...newObject, child: []});
         node.total = node.child.length
         updatedObject = diffObj({}, {...newObject, increment: true});
         const newOb = diffObj(node, updatedObject);
@@ -81,6 +81,17 @@ export function updateValue(rootObject, newObj, action = "update") {
 
   
   recursivesorting(rootObject)
+
+  // function logNode(object) {
+  //   for(const child of object.child) {
+  //     const { child: _, ...rest } = child; 
+  //       console.log(rest); 
+  //     if(child.child && child.child.length) {
+  //       logNode(child)
+  //     }
+  //   }
+  // }
+  // logNode(rootObject)
   return { response: output, changedObj: rootObject };
 }
 

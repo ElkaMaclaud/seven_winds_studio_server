@@ -11,7 +11,6 @@ const obj = {
     equipmentCosts: 0,
     overheads: 0,
     estimatedProfit: 0,
-    child: []
   };
 
 export function cleanedobj(object) {
