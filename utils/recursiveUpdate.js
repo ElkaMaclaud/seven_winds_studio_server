@@ -1,12 +1,12 @@
 import { cleanedobj } from "./cleanedObj.js";
 
-export function updateValue(rootObject, newObj, action = "update", parentId) {
+export function updateValue(rootObject, newObj, action = "update") {
   const output = { current: {}, changed: [] };
   const newObject = action !== "delete" ? cleanedobj(newObj) : null;
   let updatedObject = {};
   let firstAction = false;
   const id =
-    action === "create" ? parentId : action === "delete" ? newObj : newObj.id;
+    action === "create" ? newObj.parentId : action === "delete" ? newObj : newObj.id;
   function recursiveUpdate(node) {
     if (node.id === id) {
       if (action === "create") {
@@ -16,11 +16,14 @@ export function updateValue(rootObject, newObj, action = "update", parentId) {
         }
         newObject.id = parseInt(Math.random() * 10000 + 10000);
         node.child.push(newObject);
-        updatedObject = diffObj({}, newObject, true);
+        node.total = node.child.length
+        updatedObject = diffObj({}, {...newObject, increment: true});
         const newOb = diffObj(node, updatedObject);
-        Object.assign(node, newOb);
         output.current = (({ child, ...rest }) => rest)(newObject);
-        output.changed.push((({ child, ...rest }) => rest)(node));
+        if(!isEqual(node, newOb)) {
+          Object.assign(node, newOb);
+          output.changed.push((({ child, ...rest }) => rest)(node));
+        }
         return true;
       } else if (action === "update") {
         updatedObject = diffObj(node, newObject);
@@ -30,6 +33,7 @@ export function updateValue(rootObject, newObj, action = "update", parentId) {
       } else {
         if (rootObject.id === id) {
           rootObject = null;
+          return true
         } else {
           updatedObject = diffObj({}, node);
           firstAction = true;
@@ -51,15 +55,11 @@ export function updateValue(rootObject, newObj, action = "update", parentId) {
           if (firstAction && action === "delete") {
             const index = node.child.findIndex((item) => item === null);
             node.child.splice(index, 1);
+            node.total = node.child.length
             firstAction = false;
           }
           const newOb = diffObj(node, updatedObject);
-          const rest = (({ child, rowName, id, ...rest }) => rest)(node);
-          const result = Object.entries(rest).every(
-            ([key, val]) => newOb[key] === val
-          );
-
-          if (!result) {
+          if (!isEqual(node, newOb)) {
             Object.assign(node, newOb);
             output.changed.push((({ child, ...rest }) => rest)(node));
           }
@@ -67,7 +67,7 @@ export function updateValue(rootObject, newObj, action = "update", parentId) {
         }
       }
     }
-
+    
     return valueUpdated;
   }
 
@@ -79,24 +79,23 @@ export function updateValue(rootObject, newObj, action = "update", parentId) {
     recursiveUpdate(rootObject);
   }
 
+  
+  recursivesorting(rootObject)
   return { response: output, changedObj: rootObject };
 }
 
-function diffObj(oldObj, newObj, parent = false) {
+function diffObj(oldObj, newObj) {
   let diff = {};
   let increment = false;
 
   if (Object.keys(oldObj).length === 0) {
-    if (parent) {
-      return { ...newObj, increment: true };
-    }
     return newObj;
   }
   if (newObj.hasOwnProperty("increment")) {
     increment = true;
   }
   for (let key in oldObj) {
-    if (!["rowName", "id", "child"].includes(key)) {
+    if (!["rowName", "id", "child", "total"].includes(key)) {
       if (newObj.hasOwnProperty(key)) {
         if (increment) {
           diff[key] = newObj[key] + oldObj[key];
@@ -109,7 +108,17 @@ function diffObj(oldObj, newObj, parent = false) {
   return diff;
 }
 
+function isEqual(node, newOb) {
+  const rest = (({ child, rowName, id, total, ...rest }) => rest)(node);
+  const result = Object.entries(rest).every(
+    ([key, val]) => newOb[key] === val
+  );
+  return result
+}
 function recursivesorting(obj) {
+  if(!obj) {
+    return null
+  }
   if (obj.child && obj.child > 1) {
     obj.child.sort(a, (b) => {
       const lengthDifference =

@@ -1,7 +1,7 @@
 const obj = {
     id: 0,
     rowName: "",
-    total: 0,
+    // total: 0,
     salary: 0,
     mimExploitation: 0,
     machineOperatorSalary: 0,
